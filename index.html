@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Echoes of Earth</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div id="game-container">
+
+  <!-- ══ HOME SCREEN ═══════════════════════════════════════════════════════ -->
+  <div id="screen-home" class="screen active">
+    <!-- Looping intro.mp4 as background -->
+    <video id="home-bg-video" class="home-video-bg" src="assests/video/intro.mp4"
+           autoplay loop muted playsinline></video>
+    <div class="home-overlay"></div>
+    <div class="home-content">
+      <h1 class="game-title">Echoes of Earth</h1>
+      <p class="game-subtitle">A Mystery of Memory and Loss</p>
+      <div class="menu-buttons">
+        <button class="menu-btn" id="btn-start">Start Game</button>
+        <button class="menu-btn" id="btn-settings">Settings</button>
+        <button class="menu-btn" id="btn-quit">Quit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ STORY VIDEO SCREEN ════════════════════════════════════════════════ -->
+  <div id="screen-story-video" class="screen">
+    <video id="story-video" class="story-video-full" playsinline></video>
+    <div id="story-video-title"></div>
+    <button id="btn-skip-video" class="skip-video-btn">Skip ▶</button>
+  </div>
+
+  <!-- ══ SETTINGS MODAL ════════════════════════════════════════════════════ -->
+  <div id="modal-settings" class="modal hidden">
+    <div class="modal-box">
+      <h2>Settings</h2>
+      <label>Music Volume
+        <input type="range" id="music-vol" min="0" max="1" step="0.01" value="0.6" />
+      </label>
+      <label>SFX Volume
+        <input type="range" id="sfx-vol" min="0" max="1" step="0.01" value="0.8" />
+      </label>
+      <label>Fullscreen
+        <input type="checkbox" id="fullscreen-toggle" />
+      </label>
+      <button class="menu-btn" id="btn-settings-close">Close</button>
+    </div>
+  </div>
+
+  <!-- ══ STORY SELECTION ═══════════════════════════════════════════════════ -->
+  <div id="screen-story" class="screen">
+    <h2 class="screen-title">Choose Your Story</h2>
+    <div class="story-cards">
+      <div class="story-card available" id="story-ocean" data-story="ocean">
+        <div class="story-icon">🌊</div>
+        <h3>White Reef Mystery</h3>
+        <p>Hashima Island, Japan</p>
+      </div>
+      <div class="story-card available" id="story-garden" data-story="garden">
+        <div class="story-icon">🌼</div>
+        <h3>Silent Garden Mystery</h3>
+        <p>Pripyat, Ukraine</p>
+      </div>
+      <div class="story-card locked">
+        <div class="story-icon">🔒</div>
+        <h3>Coming Soon</h3>
+        <p>???</p>
+      </div>
+      <div class="story-card locked">
+        <div class="story-icon">🔒</div>
+        <h3>Coming Soon</h3>
+        <p>???</p>
+      </div>
+    </div>
+    <button class="back-btn" id="btn-story-back">← Back</button>
+  </div>
+
+  <!-- ══ LEVEL SELECTION ═══════════════════════════════════════════════════ -->
+  <div id="screen-level" class="screen">
+    <h2 class="screen-title" id="level-screen-title">Select Level</h2>
+    <div class="level-path" id="level-path"></div>
+    <button class="back-btn" id="btn-level-back">← Back</button>
+  </div>
+
+  <!-- ══ GAMEPLAY ══════════════════════════════════════════════════════════ -->
+  <div id="screen-gameplay" class="screen">
+    <canvas id="game-canvas"></canvas>
+
+    <!-- HUD -->
+    <div id="ui-overlay">
+      <div id="objective-panel">
+        <span id="objective-text">Explore and collect clues.</span>
+      </div>
+      <div id="clue-counter" style="display:none"><span id="clue-count">0</span><span id="clue-total">10</span></div>
+    </div>
+
+    <!-- Interaction hint -->
+    <div id="interaction-hint" class="hidden">Press <kbd>E</kbd> to interact</div>
+
+    <!-- ── CLUE PANEL (bottom-right) ───────────────────────────────────── -->
+    <div id="clue-panel" class="hidden">
+      <div id="clue-panel-header">
+        <span class="panel-header-icon">
+          <svg viewBox="0 0 22 14" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="14">
+            <path d="M1 7 C3 4, 6 4, 8 7 S13 10, 15 7 S20 4, 21 7" stroke="#7dd4f8" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+            <path d="M1 11 C3 8, 6 8, 8 11 S13 14, 15 11 S20 8, 21 11" stroke="#7dd4f8" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.5"/>
+          </svg>
+        </span>
+        <span>Collected Clues</span>
+        <span id="clue-panel-badge" class="clue-panel-badge">0 / 0</span>
+        <span id="clue-panel-toggle" title="Toggle">▼</span>
+      </div>
+      <div id="clue-list"></div>
+    </div>
+
+    <!-- Dialogue box -->
+    <div id="dialogue-box" class="hidden">
+      <!-- Left portrait (NPC) -->
+      <div id="dlg-portrait-left" class="dlg-portrait">
+        <img id="dlg-img-left" src="" alt="" />
+        <div id="dlg-name-left" class="dlg-name"></div>
+      </div>
+
+      <!-- Centre text area -->
+      <div id="dlg-center">
+        <div id="dlg-speaker-name"></div>
+        <div id="dialogue-text"></div>
+        <div id="dialogue-continue">▼ Continue</div>
+      </div>
+
+      <!-- Right portrait (Hassel) -->
+      <div id="dlg-portrait-right" class="dlg-portrait">
+        <img id="dlg-img-right" src="assests/Hazzel/idle_front.png" alt="Hassel" />
+        <div id="dlg-name-right" class="dlg-name">Hassel</div>
+      </div>
+    </div>
+
+    <!-- Notebook -->
+    <div id="notebook-panel" class="hidden">
+      <div class="notebook-inner">
+        <h3>
+          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" width="18" height="18" style="vertical-align:middle;margin-right:6px">
+            <rect x="3" y="1" width="14" height="18" rx="2" stroke="#d4aa60" stroke-width="1.5"/>
+            <line x1="3" y1="5" x2="3" y2="15" stroke="#d4aa60" stroke-width="3" stroke-linecap="round"/>
+            <line x1="7" y1="7" x2="14" y2="7" stroke="#d4aa60" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="7" y1="10" x2="14" y2="10" stroke="#d4aa60" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="7" y1="13" x2="11" y2="13" stroke="#d4aa60" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>Detective Notebook</h3>
+        <div id="notebook-entries"></div>
+        <button id="notebook-close">Close (Tab)</button>
+      </div>
+    </div>
+
+    <!-- Pause menu -->
+    <div id="pause-menu" class="hidden">
+      <div class="pause-inner">
+        <h2>Paused</h2>
+        <button class="menu-btn" id="btn-resume">Resume</button>
+        <button class="menu-btn" id="btn-pause-settings">Settings</button>
+        <button class="menu-btn" id="btn-pause-home">Return to Home</button>
+        <button class="menu-btn" id="btn-pause-quit">Quit</button>
+      </div>
+    </div>
+
+    <!-- Echo overlay -->
+    <div id="echo-overlay"></div>
+
+    <!-- Go to investigation prompt -->
+    <div id="go-investigation" class="hidden">
+      All clues found! Press <kbd>Enter</kbd> or click to Investigate →
+    </div>
+  </div>
+
+  <!-- ══ INVESTIGATION ROOM ════════════════════════════════════════════════ -->
+  <div id="screen-investigation" class="screen">
+    <div id="inv-board">
+      <h2 id="inv-title">Investigation Board</h2>
+      <div id="inv-instructions">Click a clue, then click another to connect them with red string.</div>
+      <div id="inv-clues"></div>
+      <canvas id="string-canvas"></canvas>
+      <button id="btn-solve" class="solve-btn hidden">
+        <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" width="16" height="16" style="vertical-align:middle;margin-right:6px">
+          <circle cx="8.5" cy="8.5" r="5.5" stroke="#a8e6a8" stroke-width="1.8"/>
+          <line x1="12.5" y1="12.5" x2="17" y2="17" stroke="#a8e6a8" stroke-width="2" stroke-linecap="round"/>
+        </svg>Solve the Case
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ CASE SOLVED ═══════════════════════════════════════════════════════ -->
+  <div id="screen-solved" class="screen">
+    <div class="solved-content">
+      <div class="solved-badge">
+        <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" width="80" height="80">
+          <!-- outer ring -->
+          <circle cx="40" cy="40" r="36" stroke="#4caf50" stroke-width="3" opacity="0.7"/>
+          <!-- inner fill -->
+          <circle cx="40" cy="40" r="30" fill="rgba(20,80,30,0.5)" stroke="#4caf50" stroke-width="1.5"/>
+          <!-- magnifying glass body -->
+          <circle cx="35" cy="34" r="11" stroke="#a8e6a8" stroke-width="2.5"/>
+          <!-- handle -->
+          <line x1="43" y1="43" x2="54" y2="54" stroke="#a8e6a8" stroke-width="3" stroke-linecap="round"/>
+          <!-- tick inside glass -->
+          <polyline points="29,34 33,39 41,29" stroke="#4caf50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h2 id="solved-title">Case Solved!</h2>
+      <p id="solved-summary"></p>
+      <blockquote id="solved-final-words"></blockquote>
+      <div class="solved-buttons">
+        <button class="menu-btn" id="btn-return-story">Return to Story Selection</button>
+        <button class="menu-btn hidden" id="btn-next-story">Continue to Next Story →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ OUTRO SCREEN ══════════════════════════════════════════════════════ -->
+  <div id="screen-outro" class="screen">
+    <video id="outro-video" class="story-video-full" playsinline></video>
+    <div id="outro-coming-soon">
+      <div class="outro-logo">🌍</div>
+      <h2 class="outro-title">Echoes of Earth</h2>
+      <p class="outro-subtitle">More stories are coming...</p>
+      <div class="outro-dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- #game-container -->
+
+<audio id="audio-music" loop></audio>
+<audio id="audio-sfx"></audio>
+
+<script src="js/audio.js"></script>
+<script src="js/data.js"></script>
+<script src="js/transitions.js"></script>
+<script src="js/dialogue.js"></script>
+<script src="js/player.js"></script>
+<script src="js/npc.js"></script>
+<script src="js/objects.js"></script>
+<script src="js/investigation.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
